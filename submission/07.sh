@@ -6,8 +6,10 @@ recipient="2MvLcssW49n9atmksjwg2ZCMsEMsoj3pzUP"
 changeaddress=$(bitcoin-cli -regtest getrawchangeaddress legacy)
 
 utxo_txid_1=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | grep -o '"txid": "[^"]*' | head -n 1 | cut -d'"' -f4)
-utxo_vout_1=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | grep -m 1 -o '"vout": [0-9]\+' | sed 's/"vout": //')
 
-new_tx=$(bitcoin-cli -regtest createrawtransaction '[{"txid": "'$utxo_txid_1'", "vout": '$utxo_vout_1'}]' '{"'$recipient'": 0.2, "'$changeaddress'": 0.03669108}')
+new_tx=$(bitcoin-cli -regtest createrawtransaction '[{"txid": "'$utxo_txid_1'", "vout": 0}, {"txid": "'$utxo_txid_1'", "vout": 1}]' '{"'$recipient'": 0.2, "'$changeaddress'": 0.03669108}')
 
-echo "$new_tx"
+signed_tx=$(bitcoin-cli -regtest signrawtransactionwithwallet "$new_tx" | grep -o '"hex":"[^"]*' | cut -d'"' -f4)
+
+txid_sent=$(bitcoin-cli -regtest sendrawtransaction "$signed_tx")
+ echo "$txid_sent"
