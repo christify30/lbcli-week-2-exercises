@@ -30,9 +30,10 @@
 g=$(bitcoin-cli -regtest generatetoaddress 101 $(bitcoin-cli -regtest getnewaddress))
 
 # Raw transaction as given
+# Raw transaction as given
 raw_tx="01000000000101c8b0928edebbec5e698d5f86d0474595d9f6a5b2e4e3772cd9d1005f23bdef772500000000ffffffff0276b4fa0000000000160014f848fe5267491a8a5d32423de4b0a24d1065c6030e9c6e000000000016001434d14a23d2ba08d3e3edee9172f0c97f046266fb0247304402205fee57960883f6d69acf283192785f1147a3e11b97cf01a210cf7e9916500c040220483de1c51af5027440565caead6c1064bac92cb477b536e060f004c733c45128012102d12b6b907c5a1ef025d0924a29e354f6d7b1b11b5a7ddff94710d6f0042f3da800000000"
 
-# Extract the txid and vout from the raw transaction
+# Extract txid and vout from the raw transaction
 utxo_txid_1=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | jq -r '.vin[0].txid')
 utxo_vout_0_amount=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | jq -r '.vout[0].value')
 utxo_vout_1_amount=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | jq -r '.vout[1].value')
@@ -40,23 +41,28 @@ utxo_vout_1_amount=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | jq -r
 # Calculate the total input amount
 total_input=$(echo "$utxo_vout_0_amount + $utxo_vout_1_amount" | bc)
 
-# Set the recipient address and amount for the transaction
+# Recipient address
 recipient="2MvLcssW49n9atmksjwg2ZCMsEMsoj3pzUP"
 amount=0.2
-change_amount=$(echo "$total_input - $amount - 0.0001" | bc)  # Subtract fee
 
-# Create the raw transaction JSON
-raw_tx_json="{\"txid\": \"$utxo_txid_1\", \"vout\": 0, \"sequence\": 4294967294}, {\"txid\": \"$utxo_txid_1\", \"vout\": 1, \"sequence\": 4294967294}"
-recipient_json="{\"$recipient\": $amount, \"change_address\": $change_amount}"
+# Calculate change amount, subtracting the fee
+change_amount=$(echo "$total_input - $amount - 0.0001" | bc)
 
-# Construct the transaction
-new_tx=$(bitcoin-cli -regtest createrawtransaction "[$raw_tx_json]" "$recipient_json")
+# Construct the inputs JSON array
+inputs='[{"txid": "'$utxo_txid_1'", "vout": 0, "sequence": 4294967294}, {"txid": "'$utxo_txid_1'", "vout": 1, "sequence": 4294967294}]'
 
-# Fund the raw transaction with fee rate and replaceable flag
+# Construct the outputs JSON
+outputs="{\"$recipient\": $amount, \"change\": $change_amount}"
+
+# Create the raw transaction with the inputs and outputs
+new_tx=$(bitcoin-cli -regtest createrawtransaction "$inputs" "$outputs")
+
+# Fund the raw transaction to calculate fees and change
 funded_tx=$(bitcoin-cli -regtest fundrawtransaction "$new_tx" '{"feeRate": 0.00001, "replaceable": true}' | jq -r '.hex')
 
-# Sign the transaction with the wallet
+# Sign the raw transaction
 signed_tx=$(bitcoin-cli -regtest signrawtransactionwithwallet "$funded_tx" | jq -r '.hex')
 
 # Output the signed transaction
 echo "$signed_tx"
+
