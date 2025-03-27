@@ -394,11 +394,13 @@ TIMELOCK_OUTPUTS='{
   "'$TIMELOCK_ADDRESS'": '$TIMELOCK_AMOUNT'
 }'
 
+CHANGE_OUTPUT_INDEX=1
 TIMELOCK_INPUTS='[{
   "txid": "'$PARENT_TXID'",
   "vout": '$CHANGE_OUTPUT_INDEX',
   "sequence": 10
 }]'
+
 check_cmd "Timelock output creation" "TIMELOCK_OUTPUTS" "$TIMELOCK_OUTPUTS"
 
 # STUDENT TASK: Create the raw transaction with timelock
