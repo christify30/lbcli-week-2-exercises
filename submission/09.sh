@@ -219,13 +219,13 @@ check_cmd "Transaction decoding" "DECODED_TX" "$DECODED_TX"
 
 # STUDENT TASK: Extract and verify the key components from the decoded transaction
 # WRITE YOUR SOLUTION BELOW:
-VERIFY_RBF=$(echo "$DECODED_TX" | jq -r '.vin[].sequence' | awk '{if ($1 < 4294967294) {print "RBF Enabled"} else {print "RBF Not Enabled"}}')
+VERIFY_RBF=$(echo "$DECODED_TX" | jq -r '.vin[].sequence' | awk '{if ($1 < 4294967294) {print "true"} else {print "false"}}')
 check_cmd "RBF verification" "VERIFY_RBF" "$VERIFY_RBF"
 
-VERIFY_PAYMENT=
+VERIFY_PAYMENT=$(echo "$DECODED_TX" | jq -r '.vout[] | select(.value == ('$PAYMENT_AMOUNT' / 100000000)) | .value')
 check_cmd "Payment verification" "VERIFY_PAYMENT" "$VERIFY_PAYMENT"
 
-VERIFY_CHANGE=
+VERIFY_CHANGE=$(echo "$DECODED_TX" | jq -r '.vout[] | select(.scriptPubKey.address == "'$CHANGE_ADDRESS'") | .value')
 check_cmd "Change verification" "VERIFY_CHANGE" "$VERIFY_CHANGE"
 
 echo "Verification Results:"
