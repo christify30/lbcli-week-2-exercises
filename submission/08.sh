@@ -8,6 +8,6 @@ recipient="2MvLcssW49n9atmksjwg2ZCMsEMsoj3pzUP"
 
 utxo_txid_1=$(bitcoin-cli -regtest decoderawtransaction "$raw_tx" | grep -o '"txid": "[^"]*' | head -n 1 | cut -d'"' -f4)
 
-new_tx=$(bitcoin-cli -regtest createrawtransaction '[{"txid": "'$utxo_txid_1'", "vout": 0, "sequence": 0}, {"txid": "'$utxo_txid_1'", "vout": 1, "sequence": 1}]' '{"'$recipient'": 0.2}')
+new_tx=$(bitcoin-cli -regtest createrawtransaction '[{"txid": "'$utxo_txid_1'", "vout": 0, "sequence": 4294967293}, {"txid": "'$utxo_txid_1'", "vout": 1, "sequence": 4294967293}]' '{"'$recipient'": 0.2}')
 
 echo "$new_tx"
