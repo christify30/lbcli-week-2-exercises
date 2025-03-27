@@ -257,7 +257,7 @@ echo ""
 echo "Creating a simple transaction for signing..."
 
 # STUDENT TASK: Create a simple transaction that sends funds to the test address
-SIMPLE_TX_INPUTS='[{"txid":"'$TXID'","vout":0,"sequence":4294967293}]'
+SIMPLE_TX_INPUTS='[{"txid":"'$TXID'","vout":0,"sequence":1}]'
 SIMPLE_TX_OUTPUTS='{"'$TEST_ADDRESS'":0.0001}'
 
 # Create a raw transaction for signing using the SIMPLE_TX_INPUTS and SIMPLE_TX_OUTPUTS
