@@ -181,19 +181,22 @@ fi
 
 # STUDENT TASK: Calculate the change amount
 PAYMENT_AMOUNT=15000000  # in satoshis
-CHANGE_AMOUNT=
+CHANGE_AMOUNT=$(( UTXO_VALUE - PAYMENT_AMOUNT - FEE_SATS ))
 check_cmd "Change calculation" "CHANGE_AMOUNT" "$CHANGE_AMOUNT"
 
 # Convert amounts to BTC for createrawtransaction
-PAYMENT_BTC=
-CHANGE_BTC=
+PAYMENT_BTC=$(awk "BEGIN {printf \"%.8f\", $PAYMENT_AMOUNT / 100000000}")
+CHANGE_BTC=$(awk "BEGIN {printf \"%.8f\", $CHANGE_AMOUNT / 100000000}")
 
 # STUDENT TASK: Create the outputs JSON structure
-TX_OUTPUTS=
+TX_OUTPUTS='{
+  "'$PAYMENT_ADDRESS'": '$PAYMENT_BTC',
+  "'$CHANGE_ADDRESS'": '$CHANGE_BTC'
+}'
 check_cmd "Output JSON creation" "TX_OUTPUTS" "$TX_OUTPUTS"
 
 # STUDENT TASK: Create the raw transaction
-RAW_TX=
+RAW_TX=$(bitcoin-cli -regtest createrawtransaction "$TX_INPUTS" "$TX_OUTPUTS")
 check_cmd "Raw transaction creation" "RAW_TX" "$RAW_TX"
 
 echo "Successfully created raw transaction!"
@@ -211,12 +214,12 @@ echo ""
 
 # STUDENT TASK: Decode the raw transaction
 # WRITE YOUR SOLUTION BELOW:
-DECODED_TX=
+DECODED_TX=$(bitcoin-cli -regtest decoderawtransaction "$RAW_TX")
 check_cmd "Transaction decoding" "DECODED_TX" "$DECODED_TX"
 
 # STUDENT TASK: Extract and verify the key components from the decoded transaction
 # WRITE YOUR SOLUTION BELOW:
-VERIFY_RBF=
+VERIFY_RBF=$(echo "$DECODED_TX" | jq -r '.vin[].sequence' | awk '{if ($1 < 4294967294) {print "RBF Enabled"} else {print "RBF Not Enabled"}}')
 check_cmd "RBF verification" "VERIFY_RBF" "$VERIFY_RBF"
 
 VERIFY_PAYMENT=
