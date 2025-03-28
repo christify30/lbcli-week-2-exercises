@@ -380,6 +380,7 @@ SECONDARY_TX_DECODED=$(bitcoin-cli -regtest decoderawtransaction "$SECONDARY_TX"
 
 SECONDARY_OUTPUT_VALUE=$(echo "$SECONDARY_TX_DECODED" | jq -r '.vout[0].value')
 check_cmd "Secondary output value extraction" "SECONDARY_OUTPUT_VALUE" "$SECONDARY_OUTPUT_VALUE"
+SECONDARY_OUTPUT_SATS=$(awk -v val="$SECONDARY_OUTPUT_VALUE" 'BEGIN {printf "%.0f", val * 100000000}')
 
 TIMELOCK_FEE=1000 # Use a simple fee of 1000 satoshis for this exercise
 TIMELOCK_AMOUNT=$(($SECONDARY_OUTPUT_SATS - $TIMELOCK_FEE))
@@ -393,15 +394,16 @@ TIMELOCK_OUTPUTS='{
   "'$TIMELOCK_ADDRESS'": '$TIMELOCK_AMOUNT'
 }'
 
-check_cmd "Timelock output creation" "TIMELOCK_OUTPUTS" "$TIMELOCK_OUTPUTS"
-
-# STUDENT TASK: Create the raw transaction with timelock
 CHANGE_OUTPUT_INDEX=1
 TIMELOCK_INPUTS='[{
   "txid": "'$PARENT_TXID'",
   "vout": '$CHANGE_OUTPUT_INDEX',
   "sequence": 10
 }]'
+
+check_cmd "Timelock output creation" "TIMELOCK_OUTPUTS" "$TIMELOCK_OUTPUTS"
+
+# STUDENT TASK: Create the raw transaction with timelock
 TIMELOCK_TX=$(bitcoin-cli -regtest createrawtransaction "$TIMELOCK_INPUTS" "$TIMELOCK_OUTPUTS")
 check_cmd "Timelock transaction creation" "TIMELOCK_TX" "$TIMELOCK_TX"
 
